@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://www.urbancode.com/PluginXMLSchema_v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <header>
+        <identifier version="1" id="com.urbancode.air.plugin.ServiceNowREST" name="ServiceNow (REST)"/>
+        <description>The ServiceNow plugin allows you to create, edit, transition and check the status of Change Requests and Tasks as part of a process. This plugin uses the ServiceNow REST API.</description>
+        <tag>ITSM Process/ServiceNow REST</tag>
+    </header>
+
+    <!-- ==================================== -->
+    <!--  Check Change Request Status         -->
+    <!-- ==================================== -->
+    <step-type name="Check Change Request Status">
+        <description>Check the current status of one or more Change Requests in ServiceNow.</description>
+        <properties>
+            <property name="changeIds" required="true">
+                <property-ui type="textBox" label="Change Request Ids" default-value="${p:version/snow.changeIds}"
+                             description="A comma-separated list of change requests (by number) to check."/>
+            </property>
+            <property name="stateName" required="true">
+                <property-ui type="textBox" label="State"
+                             description="The name of the state to check for, i.e. Open, Closed Complete."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="check_change_request_status.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- =========================================== -->
+    <!--  Check Change Requests Child Task Status  -->
+    <!-- =========================================== -->
+    <step-type name="Check Change Requests Child Task Status">
+        <description>Check the current status of one or more Change Request's Child Tasks in ServiceNow.</description>
+        <properties>
+            <property name="changeIds" required="true">
+                <property-ui type="textBox" label="Change Request Ids" default-value="${p:version/snow.changeIds}"
+                             description="A comma-separated list of change requests (by number) to check tasks for."/>
+            </property>
+            <property name="stateName" required="true">
+                <property-ui type="textBox" label="State"
+                             description="The name of the state to check for in the tasks, i.e. Open, Closed Complete."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="check_change_task_status.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Check Change Request Approval       -->
+    <!-- ==================================== -->
+    <step-type name="Check Change Request Approval">
+        <description>Check the current approval status of one or more Change Requests in ServiceNow.</description>
+        <properties>
+            <property name="changeIds" required="true">
+                <property-ui type="textBox" label="Change Request Ids" default-value="${p:version/snow.changeIds}"
+                             description="A comma-separated list of change requests (by number) to check."/>
+            </property>
+            <property name="approvalName" required="true">
+                <property-ui type="textBox" label="Approval Status" default-value="Approved"
+                             description="The name of the approval status to check for, i.e. Approved."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="check_change_request_approval.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Set Change Request Status           -->
+    <!-- ==================================== -->
+    <step-type name="Set Change Request Status">
+        <description>Set the current status of one or more Change Requests in ServiceNow.</description>
+        <properties>
+            <property name="changeIds" required="true">
+                <property-ui type="textBox" label="Change Request Ids" default-value="${p:version/snow.changeIds}"
+                             description="A comma-separated list of change requests (by number) to set status for."/>
+            </property>
+            <property name="stateId" required="true">
+                <property-ui type="textBox" label="State"
+                             description="The id of the state to set, i.e. 4 for Closed Complete."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="set_change_request_status.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Check Change Task Status            -->
+    <!-- ==================================== -->
+    <step-type name="Set Change Task Status">
+        <description>Set the current status of one or more Change Tasks in ServiceNow.</description>
+        <properties>
+            <property name="changeTaskIds" required="true">
+                <property-ui type="textBox" label="Change Task Ids" default-value="${p:version/snow.changeTaskIds}"
+                             description="A comma-separated list of change tasks (by number) to set status for."/>
+            </property>
+            <property name="stateId" required="true">
+                <property-ui type="textBox" label="State"
+                             description="The id of the state to set, i.e. 3 for Closed Complete."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change task cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="set_change_task_status.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Set Change Request Approval         -->
+    <!-- ==================================== -->
+    <step-type name="Set Change Request Approval">
+        <description>Set the current approval status of one or more Change Requests in ServiceNow.</description>
+        <properties>
+            <property name="changeIds" required="true">
+                <property-ui type="textBox" label="Change Request Ids" default-value="${p:version/snow.changeIds}"
+                             description="A comma-separated list of change requests (by number) to set."/>
+            </property>
+            <property name="approvalName" required="true">
+                <property-ui type="textBox" label="Approval Status" default-value="Approved"
+                             description="The name of the approval status to set, i.e. Approved."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="set_change_request_approval.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ================================== -->
+    <!--  Get Change Requests Child Tasks  -->
+    <!-- ================================== -->
+    <step-type name="Get Change Requests Child Tasks">
+        <description>Gets the Child Tasks for a Change Request in ServiceNow, sets the property "changeTaskIds" to a comma separated list of the numbers for the Change Tasks.</description>
+        <properties>
+            <property name="changeId" required="true">
+                <property-ui type="textBox" label="Change Request Id" default-value="${p:version/snow.changeId}"
+                             description="The change requests (by number) to get tasks for."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="get_change_request_tasks.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Check Change Requests Exist         -->
+    <!-- ==================================== -->
+    <step-type name="Check Change Requests Exist">
+        <description>Checks if one or more Change Requests exist in ServiceNow.</description>
+        <properties>
+            <property name="changeIds" required="true">
+                <property-ui type="textBox" label="Change Request Ids" default-value="${p:version/snow.changeIds}"
+                             description="A comma-separated list of change requests (by number) to check."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+                <value label="Fail On No Updates">FAIL_ON_NO_UPDATES</value>
+                <value label="Fail any Any Failure">FAIL_ON_ANY_FAILURE</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="check_change_requests_exist.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Create Change Request               -->
+    <!-- ==================================== -->
+    <step-type name="Create Change Request">
+        <description>Create a new Change Request in ServiceNow, sets the properties "changeId" and "sysId" to the Change Request "number" and "sys_id".</description>
+        <properties>
+            <property name="summary" required="true">
+                <property-ui type="textBox" label="Short Description"
+                             description="A short description of the change request."/>
+            </property>
+            <property name="description" required="true">
+                <property-ui type="textAreaBox" label="Description"
+                             description="A description of the change request."/>
+            </property>
+            <property name="crType" required="false">
+                <property-ui type="textBox" label="Change Type" default-value="Routine"
+                             description="The type of change, i.e. Routine."/>
+            </property>
+            <property name="crCategory" required="false">
+                <property-ui type="textBox" label="Impact" default-value="Software"
+                             description="The category of the change, i.e. Software."/>
+            </property>
+            <property name="crPriority" required="false">
+                <property-ui type="textBox" label="Impact" default-value="3"
+                             description="The priority of the change."/>
+            </property>
+            <property name="crRisk" required="false">
+                <property-ui type="textBox" label="Risk" default-value="Low"
+                             description="The risk of implementing the change."/>
+            </property>
+            <property name="crImpact" required="false">
+                <property-ui type="textBox" label="Impact" default-value="3"
+                             description="The impact of the change."/>
+            </property>
+            <property name="configItem" required="false">
+                <property-ui type="textBox" label="Configuration Item" default-value="${p:application/snow.configItem}"
+                             description="The internal sys_id of the configuration item to associate the change request with."/>
+            </property>
+            <property name="additionalFields" required="false">
+                <property-ui type="textAreaBox" label="Additional Fields"
+                             description="Newline separated list of name=value pairs for additional fields to set for this change request."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when a change request cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="create_change_request.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+    <!-- ==================================== -->
+    <!--  Create Incident                     -->
+    <!-- ==================================== -->
+    <step-type name="Create Incident">
+        <description>Create a new Incident in ServiceNow, sets the properties "incidentId" and "sysId" to the Incident "number" and "sys_id".</description>
+        <properties>
+            <property name="summary" required="true">
+                <property-ui type="textBox" label="Short Description"
+                             description="A short description of the incident."/>
+            </property>
+            <property name="description" required="true">
+                <property-ui type="textAreaBox" label="Description"
+                             description="A description of the incident."/>
+            </property>
+            <property name="incCategory" required="false">
+                <property-ui type="textBox" label="Category" default-value="Software"
+                             description="The category of the incident, i.e. Software."/>
+            </property>
+            <property name="incSubCategory" required="false">
+                <property-ui type="textBox" label="Sub Category" default-value=""
+                             description="The sub category of the incident."/>
+            </property>
+            <property name="incImpact" required="false">
+                <property-ui type="textBox" label="Impact" default-value="3"
+                             description="The impact of the incident."/>
+            </property>
+            <property name="incUrgency" required="false">
+                <property-ui type="textBox" label="Impact" default-value="3"
+                             description="The urgency of the incident."/>
+            </property>
+            <property name="configItem" required="false">
+                <property-ui type="textBox" label="Configuration Item" default-value="${p:application/snow.configItem}"
+                             description="The internal sys_id of the configuration item to associate the incident with."/>
+            </property>
+            <property name="additionalFields" required="false">
+                <property-ui type="textAreaBox" label="Additional Fields"
+                             description="Newline separated list of name=value pairs for additional fields to set for this incident."/>
+            </property>
+            <property name="failMode" required="true">
+                <property-ui type="selectBox" label="Fail Mode"
+                             description="What should be done when an incident cannot be found."/>
+                <value label="Warn Only">WARN_ONLY</value>
+                <value label="Fail Fast">FAIL_FAST</value>
+            </property>
+            <property name="serverUrl" required="true">
+                <property-ui type="textBox" default-value="${p:system/snow.serverUrl}" label="ServiceNow Base URL"
+                             description="The ServiceNow server URL"/>
+            </property>
+            <property name="username" required="false">
+                <property-ui type="textBox" default-value="${p:system/snow.username}" label="User Name"
+                             description="The user name to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="password" required="false">
+                <property-ui type="secureBox" default-value="${p:system/snow.password}" label="Password"
+                             description="The password to be used to connect to the ServiceNow server."/>
+            </property>
+            <property name="passwordScript" required="false">
+                <property-ui type="textAreaBox" label="Password Script"
+                             description="If you wish to use a script or property lookups for your password, leave the Password field blank and enter it here."/>
+            </property>
+            <property name="apiVersion" required="false">
+                <property-ui type="textBox" label="REST API Version" default-value="v1" hidden="true"
+                             description="Which version of the ServiceNow REST API to use, defaults to 'v1'."/>
+            </property>
+            <property name="debug" required="false">
+                <property-ui type="checkBox" label="Debug Output" hidden="true"
+                             description="Select this option to display debug output during execution."/>
+            </property>
+        </properties>
+        <post-processing><![CDATA[
+        if (properties.get("exitCode") != 0) {
+            properties.put(new java.lang.String("Status"), new java.lang.String("Failure"));
+        }
+        else {
+            properties.put("Status", "Success");
+        }
+     ]]></post-processing>
+        <command program="${GROOVY_HOME}/bin/groovy">
+            <arg value="-cp"/>
+            <arg path="classes:lib/*"/>
+            <arg value="-Djnp.disableDiscovery=true"/>
+            <arg file="create_incident.groovy"/>
+            <arg file="${PLUGIN_INPUT_PROPS}"/>
+            <arg file="${PLUGIN_OUTPUT_PROPS}"/>
+        </command>
+    </step-type>
+
+</plugin>
